@@ -107,6 +107,9 @@ void Error_Handler(void);
 #define HAT3_P6_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 #define FREERTOS_ENABLED
+#define BMP280_CSN_GPIO_Port GPIOA
+#define BMP280_CSN_Pin GPIO_PIN_4
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

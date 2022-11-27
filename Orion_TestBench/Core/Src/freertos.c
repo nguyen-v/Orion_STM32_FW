@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "i2c.h"
 #include "ADS1113.h"
+#include "BMP280.hpp"
 #include <stdbool.h>
 /* USER CODE END Includes */
 
@@ -181,6 +182,8 @@ void StartAdsTask(void *argument)
 void StartGPIOTask(void *argument)
 {
   /* USER CODE BEGIN StartGPIOTask */
+  BMP280 bmp(&hspi1);
+  bmp.initialize();
   /* Infinite loop */
   for(;;)
   {
