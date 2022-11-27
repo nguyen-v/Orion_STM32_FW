@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ADS1113.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -106,7 +106,7 @@ void Error_Handler(void);
 #define HAT3_P6_Pin GPIO_PIN_7
 #define HAT3_P6_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-
+#define FREERTOS_ENABLED
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
