@@ -64,10 +64,17 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t Rx_data[100] = {0};
 
-uint16_t counter = 0;
+uint8_t Buffer[25] = {0};
+uint8_t Space[] = " - ";
+uint8_t StartMSG[] = "Starting I2C Scanning: \r\n";
+uint8_t EndMSG[] = "Done! \r\n\r\n";
+
+//uint16_t counter = 0;
+extern "C" { // C++ cannot override printf, must compile in C
 int __io_putchar(int ch) {
     ITM_SendChar(ch);
     return ch;
+}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -141,6 +148,31 @@ int main(void)
 
 
   HAL_UART_Receive_DMA(&huart3, Rx_data, 100);
+
+  uint8_t i = 0, ret;
+  HAL_UART_Transmit(&huart1, StartMSG, sizeof(StartMSG), 10000);
+  for(i=1; i<128; i++)
+  {
+	#if defined(TEST_HAT_1)
+	  ret = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t)(i<<1), 3, 5);
+	#elif defined(TEST_HAT_2)
+	  ret = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)(i<<1), 3, 5);
+	#elif defined(TEST_HAT_3)
+	  ret = HAL_I2C_IsDeviceReady(&hi2c3, (uint16_t)(i<<1), 3, 5);
+	#endif
+
+      if (ret != HAL_OK) /* No ACK Received At That Address */
+      {
+          HAL_UART_Transmit(&huart1, Space, sizeof(Space), 10000);
+      }
+      else if(ret == HAL_OK)
+      {
+          sprintf((char*)Buffer, "0x%X", i);
+          HAL_UART_Transmit(&huart1, Buffer, sizeof(Buffer), 10000);
+      }
+  }
+  HAL_UART_Transmit(&huart1, EndMSG, sizeof(EndMSG), 10000);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -158,14 +190,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  counter++;
-	  HAL_Delay(1000);
+//	  counter++;
+//	  HAL_Delay(1000);
 //	  HAL_UART_Receive (&huart3, Rx_data, 100, 1000);
 //	  HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 //	  HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
-	  printf("Hello world! %d \n", counter);
+//	  printf("Hello world! %d \n", counter);
 //	  printf("\n\nCore=%d, %d MHz\n", SystemCoreClock, SystemCoreClock / 1000000);
-	  sprintf((char*)MSG, "Hello world from UART! Tracing counter = %d\r\n", counter);
+//	  sprintf((char*)MSG, "Hello world from UART! Tracing counter = %d\r\n", counter);
 //	  HAL_UART_Transmit(&huart1, MSG, sizeof(MSG), 100);
 //	  HAL_UART_Transmit(&huart5, MSG, sizeof(MSG), 100);
 //	  HAL_UART_Transmit(&huart3, MSG, sizeof(MSG), 100);

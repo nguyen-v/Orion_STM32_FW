@@ -65,10 +65,12 @@ void MX_FREERTOS_Init(void);
 uint8_t Rx_data[100] = {0};
 
 uint16_t counter = 0;
+//extern "C" { // C++ cannot override printf, must compile in C
 int __io_putchar(int ch) {
     ITM_SendChar(ch);
     return ch;
 }
+//}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {

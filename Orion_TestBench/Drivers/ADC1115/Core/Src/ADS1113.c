@@ -79,7 +79,14 @@ bool ADS1113_init(ads1113_t *i2c, I2C_HandleTypeDef *hi2c, uint8_t i2cAddress) {
 		return false;
 	}
 	//Configure I2C port
-	i2c->hi2c->Instance = I2C1;
+	#if defined(TEST_HAT_1)
+		i2c->hi2c->Instance = I2C1;
+	#elif defined(TEST_HAT_2)
+		i2c->hi2c->Instance = I2C2;
+	#elif defined(TEST_HAT_3)
+		i2c->hi2c->Instance = I2C3;
+	#endif
+
 	i2c->hi2c->Init.Timing = 0x00401242;
 	i2c->hi2c->Init.OwnAddress1 = 0;
 	i2c->hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -106,7 +113,14 @@ bool ADS1113_init(ads1113_t *i2c, I2C_HandleTypeDef *hi2c, uint8_t i2cAddress) {
 	}
 	/** I2C Enable Fast Mode Plus
 	*/
-	HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C1);
+	#if defined(TEST_HAT_1)
+		HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C1);
+	#elif defined(TEST_HAT_2)
+		HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C2);
+	#elif defined(TEST_HAT_3)
+		HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C3);
+	#endif
+
 
 	if (ADSbegin(i2c) != HAL_OK)
 	{
@@ -195,8 +209,8 @@ uint16_t ADSreadADC_SingleEnded(ads1113_t *i2c, uint8_t channel) {
 	writeRegister(i2c, ADS1015_REG_POINTER_CONFIG, config);
 
 	// Wait for the conversion to complete
-//	ads_delay(i2c->m_conversionDelay);
-	osDelay(8);
+	ads_delay(i2c->m_conversionDelay);
+//	osDelay(8);
 
 	// Read the conversion results
 	// Shift 12-bit results right 4 bits for the ADS1015
@@ -231,8 +245,8 @@ int16_t ADSreadADC_Differential_0_1(ads1113_t *i2c) {
 	bool success = writeRegister(i2c, ADS1015_REG_POINTER_CONFIG, config);
 
 	// Wait for the conversion to complete
-//	ads_delay(i2c->m_conversionDelay);
-	osDelay(8);
+	ads_delay(i2c->m_conversionDelay);
+//	osDelay(8);
 
 	// Read the conversion results
 	uint16_t res = readRegister(i2c, ADS1015_REG_POINTER_CONVERT) >> i2c->m_bitShift;

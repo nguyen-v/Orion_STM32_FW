@@ -1,3 +1,10 @@
+/*
+ * BMP280.hpp
+ *
+ *  Created on: 27 Nov 2022
+ *      Author: Vincent
+ */
+
 #ifndef BMP280_HPP_
 #define BMP280_HPP_
 

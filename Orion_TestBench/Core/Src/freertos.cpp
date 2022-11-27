@@ -26,9 +26,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "i2c.h"
+#include "spi.h"
 #include "ADS1113.h"
 #include "BMP280.hpp"
 #include <stdbool.h>
+#include "stdio.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,6 +74,13 @@ const osThreadAttr_t gpioTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for bmpTask */
+osThreadId_t bmpTaskHandle;
+const osThreadAttr_t bmpTask_attributes = {
+  .name = "bmpTask",
+  .stack_size = 1024 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -80,6 +90,7 @@ const osThreadAttr_t gpioTask_attributes = {
 void StartBlink01(void *argument);
 void StartAdsTask(void *argument);
 void StartGPIOTask(void *argument);
+void StartBMPTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -118,6 +129,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of gpioTask */
   gpioTaskHandle = osThreadNew(StartGPIOTask, NULL, &gpioTask_attributes);
+
+  /* creation of bmpTask */
+  bmpTaskHandle = osThreadNew(StartBMPTask, NULL, &bmpTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -158,15 +172,22 @@ void StartBlink01(void *argument)
 void StartAdsTask(void *argument)
 {
   /* USER CODE BEGIN StartAdsTask */
+  #if defined(TEST_HAT_1)
 	bool success = ADS1113_init(&voltmeter, &hi2c1, ADS_ADDR_GND);
+  #elif defined(TEST_HAT_2)
+	bool success = ADS1113_init(&voltmeter, &hi2c2, ADS_ADDR_GND);
+  #elif defined(TEST_HAT_3)
+	bool success = ADS1113_init(&voltmeter, &hi2c3, ADS_ADDR_GND);
+  #endif
+
 	ADSsetGain(&voltmeter, GAIN_ONE);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(1000);
     if (success) {
 		int16_t val = ADSreadADC_Differential_0_1(&voltmeter);
-		printf("Differential value %d \n", val);
+		printf("Differential value %d\n", val);
 	}
   }
   /* USER CODE END StartAdsTask */
@@ -182,14 +203,55 @@ void StartAdsTask(void *argument)
 void StartGPIOTask(void *argument)
 {
   /* USER CODE BEGIN StartGPIOTask */
-  BMP280 bmp(&hspi1);
-  bmp.initialize();
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	HAL_GPIO_TogglePin(HAT_P1_GPIO_Port, HAT_P1_Pin);
+    osDelay(100);
+    HAL_GPIO_TogglePin(HAT_P2_GPIO_Port, HAT_P2_Pin);
+    osDelay(100);
+    HAL_GPIO_TogglePin(HAT_P3_GPIO_Port, HAT_P3_Pin);
+    osDelay(100);
+	HAL_GPIO_TogglePin(HAT_P4_GPIO_Port, HAT_P4_Pin);
+    osDelay(100);
+    HAL_GPIO_TogglePin(HAT_P5_GPIO_Port, HAT_P5_Pin);
+    osDelay(100);
+    HAL_GPIO_TogglePin(HAT_P6_GPIO_Port, HAT_P6_Pin);
+    osDelay(100);
   }
   /* USER CODE END StartGPIOTask */
+}
+
+/* USER CODE BEGIN Header_StartBMPTask */
+/**
+* @brief Function implementing the bmpTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBMPTask */
+void StartBMPTask(void *argument)
+{
+  /* USER CODE BEGIN StartBMPTask */
+
+
+  #if defined(TEST_HAT_1)
+	BMP280 bmp(&hspi1);
+  #elif defined(TEST_HAT_2)
+	BMP280 bmp(&hspi2);
+  #elif defined(TEST_HAT_3)
+	BMP280 bmp(&hspi3);
+  #endif
+
+  uint8_t status = bmp.initialize();
+  /* Infinite loop */
+  for(;;)
+  {
+	bmp.measure();
+	printf("Pressure = %f \t Temperature = %f \n", bmp.measurement.pressure, bmp.measurement.temperature);
+	osDelay(1000);
+  }
+  /* USER CODE END StartBMPTask */
 }
 
 /* Private application code --------------------------------------------------*/

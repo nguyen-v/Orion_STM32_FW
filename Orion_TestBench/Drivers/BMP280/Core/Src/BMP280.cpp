@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdint.h>
 
+
 BMP280::BMP280(SPI_HandleTypeDef *handle)
 {
 	spiHandle = handle;
@@ -15,7 +16,8 @@ BMP280::BMP280(SPI_HandleTypeDef *handle)
  * */
 uint8_t BMP280::initialize()
 {
-	if (getID() != BMP280_CHIP_ID)
+	uint8_t id = getID();
+	if (id != BMP280_CHIP_ID)
 	{
 		return 1;
 	}
