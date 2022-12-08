@@ -91,6 +91,13 @@ const osThreadAttr_t bmpTask_attributes = {
   .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for blink02 */
+osThreadId_t blink02Handle;
+const osThreadAttr_t blink02_attributes = {
+  .name = "blink02",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -101,6 +108,7 @@ void StartBlink01(void *argument);
 void StartAdsTask(void *argument);
 void StartGPIOTask(void *argument);
 void StartBMPTask(void *argument);
+void StartBlink02(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -142,6 +150,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of bmpTask */
   bmpTaskHandle = osThreadNew(StartBMPTask, NULL, &bmpTask_attributes);
+
+  /* creation of blink02 */
+  blink02Handle = osThreadNew(StartBlink02, NULL, &blink02_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -284,6 +295,25 @@ void StartBMPTask(void *argument)
 	osDelay(1000);
   }
   /* USER CODE END StartBMPTask */
+}
+
+/* USER CODE BEGIN Header_StartBlink02 */
+/**
+* @brief Function implementing the blink02 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlink02 */
+void StartBlink02(void *argument)
+{
+  /* USER CODE BEGIN StartBlink02 */
+  /* Infinite loop */
+  for(;;)
+  {
+	HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
+	osDelay(600);
+  }
+  /* USER CODE END StartBlink02 */
 }
 
 /* Private application code --------------------------------------------------*/
