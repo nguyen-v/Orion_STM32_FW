@@ -27,10 +27,12 @@
 /* USER CODE BEGIN Includes */
 #include "i2c.h"
 #include "spi.h"
+#include "usart.h"
 #include "ADS1113.h"
 #include "BMP280.hpp"
 #include <stdbool.h>
 #include "stdio.h"
+
 
 /* USER CODE END Includes */
 
@@ -52,6 +54,14 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 ads1113_t voltmeter;
+uint8_t ADS_MSG3[100] = {0};
+uint8_t ADS_MSG4[100] = {0};
+uint8_t ADS_MSG5[100] = {0};
+uint8_t ADS_MSG8[100] = {0};
+uint8_t BMP_MSG3[100] = {0};
+uint8_t BMP_MSG4[100] = {0};
+uint8_t BMP_MSG5[100] = {0};
+uint8_t BMP_MSG8[100] = {0};
 /* USER CODE END Variables */
 /* Definitions for blink01 */
 osThreadId_t blink01Handle;
@@ -174,10 +184,13 @@ void StartAdsTask(void *argument)
   /* USER CODE BEGIN StartAdsTask */
   #if defined(TEST_HAT_1)
 	bool success = ADS1113_init(&voltmeter, &hi2c1, ADS_ADDR_GND);
+	uint8_t hat_number = 1;
   #elif defined(TEST_HAT_2)
 	bool success = ADS1113_init(&voltmeter, &hi2c2, ADS_ADDR_GND);
+	uint8_t hat_number = 2;
   #elif defined(TEST_HAT_3)
 	bool success = ADS1113_init(&voltmeter, &hi2c3, ADS_ADDR_GND);
+	uint8_t hat_number = 3;
   #endif
 
 	ADSsetGain(&voltmeter, GAIN_ONE);
@@ -188,6 +201,14 @@ void StartAdsTask(void *argument)
     if (success) {
 		int16_t val = ADSreadADC_Differential_0_1(&voltmeter);
 		printf("Differential value %d\n", val);
+		sprintf((char*)ADS_MSG3, "from UART3 (HAT %d): Differential value %d \n \r", hat_number, val);
+		sprintf((char*)ADS_MSG4, "from UART4 (HAT %d): Differential value %d \n \r", hat_number, val);
+		sprintf((char*)ADS_MSG5, "from UART5 (HAT %d): Differential value %d \n \r", hat_number, val);
+		sprintf((char*)ADS_MSG8, "from UART8 (HAT %d): Differential value %d \n \r", hat_number, val);
+		HAL_UART_Transmit(&huart3, ADS_MSG3, sizeof(ADS_MSG3), 100);
+		HAL_UART_Transmit(&huart4, ADS_MSG4, sizeof(ADS_MSG4), 100);
+		HAL_UART_Transmit(&huart5, ADS_MSG5, sizeof(ADS_MSG5), 100);
+		HAL_UART_Transmit(&huart8, ADS_MSG8, sizeof(ADS_MSG8), 100);
 	}
   }
   /* USER CODE END StartAdsTask */
@@ -237,10 +258,13 @@ void StartBMPTask(void *argument)
 
   #if defined(TEST_HAT_1)
 	BMP280 bmp(&hspi1);
+	uint8_t hat_number = 1;
   #elif defined(TEST_HAT_2)
 	BMP280 bmp(&hspi2);
+	uint8_t hat_number = 2;
   #elif defined(TEST_HAT_3)
 	BMP280 bmp(&hspi3);
+	uint8_t hat_number = 3;
   #endif
 
   uint8_t status = bmp.initialize();
@@ -249,6 +273,14 @@ void StartBMPTask(void *argument)
   {
 	bmp.measure();
 	printf("Pressure = %f \t Temperature = %f \n", bmp.measurement.pressure, bmp.measurement.temperature);
+	sprintf((char*)BMP_MSG3, "from UART3 (HAT %d): Pressure = %f \t Temperature = %f \n \r", hat_number, bmp.measurement.pressure, bmp.measurement.temperature);
+	sprintf((char*)BMP_MSG4, "from UART4 (HAT %d): Pressure = %f \t Temperature = %f \n \r", hat_number, bmp.measurement.pressure, bmp.measurement.temperature);
+	sprintf((char*)BMP_MSG5, "from UART5 (HAT %d): Pressure = %f \t Temperature = %f \n \r", hat_number, bmp.measurement.pressure, bmp.measurement.temperature);
+	sprintf((char*)BMP_MSG8, "from UART8 (HAT %d): Pressure = %f \t Temperature = %f \n \r", hat_number, bmp.measurement.pressure, bmp.measurement.temperature);
+	HAL_UART_Transmit(&huart3, BMP_MSG3, sizeof(BMP_MSG3), 100);
+	HAL_UART_Transmit(&huart4, BMP_MSG4, sizeof(BMP_MSG4), 100);
+	HAL_UART_Transmit(&huart5, BMP_MSG5, sizeof(BMP_MSG5), 100);
+	HAL_UART_Transmit(&huart8, BMP_MSG8, sizeof(BMP_MSG8), 100);
 	osDelay(1000);
   }
   /* USER CODE END StartBMPTask */
@@ -256,27 +288,6 @@ void StartBMPTask(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-//void StartBlink02(void *argument)
-//{
-//  /* USER CODE BEGIN StartBlink02 */
-//  bool success = ADS1113_init(&voltmeter, &hi2c1, ADS_ADDR_GND);
-//  HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, ADS_ADDR_GND<<1, 10, 100);
-//  ADSsetGain(&voltmeter, GAIN_ONE);
-//  /* Infinite loop */
-//  for(;;)
-//  {
-//	HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
-//    osDelay(600);
-//    status = HAL_I2C_IsDeviceReady(&hi2c1, ADS_ADDR_GND<<1, 10, 100);
-////    printf("Differential value %d \n", ADSreadADC_Differential_0_1(&hi2c1));
-//    if (success) {
-//    	status = HAL_I2C_IsDeviceReady(&hi2c1, ADS_ADDR_GND<<1, 10, 100);
-//		int16_t val = ADSreadADC_Differential_0_1(&voltmeter);
-//		printf("Differential value %d \n", val);
-//    }
-////    printf("Single ended value %d \n", ADSreadADC_SingleEnded(&hi2c1));
-//  }
-//  /* USER CODE END StartBlink02 */
-//}
+
 /* USER CODE END Application */
 

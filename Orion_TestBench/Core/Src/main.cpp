@@ -63,6 +63,7 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint8_t Rx_data[100] = {0};
+uint8_t uart_name[100] = {0};
 
 uint8_t Buffer[25] = {0};
 uint8_t Space[] = " - ";
@@ -80,7 +81,18 @@ int __io_putchar(int ch) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   SCB_InvalidateDCache_by_Addr((uint32_t*)(((uint32_t)Rx_data) & ~(uint32_t)0x1F), 100+32);
-  HAL_UART_Receive_DMA(&huart3, Rx_data, 100);
+  HAL_UART_Receive_DMA(huart, Rx_data, 100);
+  uint8_t uart_number;
+  if (huart == &huart3)
+	  uart_number = 3;
+  else if (huart == &huart4)
+	  uart_number = 4;
+  else if (huart == &huart5)
+	  uart_number = 5;
+  else
+	  uart_number = 8;
+  sprintf((char*)uart_name, "Received on UART%d ", uart_number);
+  HAL_UART_Transmit(&huart1, uart_name, sizeof(uart_name), 100);
   HAL_UART_Transmit(&huart1, Rx_data, sizeof(Rx_data), 100);
 }
 
@@ -140,14 +152,17 @@ int main(void)
   MX_UART5_Init();
   MX_UART8_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t MSG[100] = {0};
-  uint8_t MSG_PWR[45] = {'\0'};
+//  uint8_t MSG[100] = {0};
+//  uint8_t MSG_PWR[45] = {'\0'};
   HAL_TIM_PWM_Start (&htim8, TIM_CHANNEL_1);
 //  TIM8->CCR1 = 1;
-  int32_t CH1_DC = 1000;
-
-
+//  int32_t CH1_DC = 1000;
   HAL_UART_Receive_DMA(&huart3, Rx_data, 100);
+  HAL_UART_Receive_DMA(&huart4, Rx_data, 100);
+
+
+  HAL_UART_Receive_DMA(&huart5, Rx_data, 100);
+  HAL_UART_Receive_DMA(&huart8, Rx_data, 100);
 
   uint8_t i = 0, ret;
   HAL_UART_Transmit(&huart1, StartMSG, sizeof(StartMSG), 10000);
