@@ -265,7 +265,7 @@ void StartGPIOTask(void *argument)
 void StartBMPTask(void *argument)
 {
   /* USER CODE BEGIN StartBMPTask */
-
+  osDelay(500);
 
   #if defined(TEST_HAT_1)
 	BMP280 bmp(&hspi1);
